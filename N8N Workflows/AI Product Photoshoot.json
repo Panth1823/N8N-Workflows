@@ -288,7 +288,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer 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"
+              "value": "Bearer <your-api-key>"
             }
           ]
         },
