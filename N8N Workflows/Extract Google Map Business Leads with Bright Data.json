@@ -431,7 +431,7 @@
           "parameters": [
             {
               "name": "Authorization",
-              "value": "Bearer 8ff3097f0f7fdadf592bc0a464743a71d23a521f7ae34ddc9487ed743ca9bcb2"
+              "value": "Bearer <Bright-Data-API-Key"
             }
           ]
         },
