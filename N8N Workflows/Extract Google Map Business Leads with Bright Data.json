@@ -1,0 +1,882 @@
+{
+  "name": "Extract Google Map Business Leads with Bright Data",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Extract Business Data Using Service Name and Location",
+        "formDescription": "Fill details to extract business leads",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Service",
+              "placeholder": "Laptop Store",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "State",
+              "placeholder": "Texas",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Country",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "US"
+                  },
+                  {
+                    "option": "India"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "11ab4fbd-53a4-4fe6-b43d-077957c400d1",
+      "name": "Form Submission Trigger",
+      "type": "n8n-nodes-base.formTrigger",
+      "position": [
+        -4192,
+        32
+      ],
+      "webhookId": "2dff254d-a8e3-4d27-9871-e9803e342d4e",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "content": "## Extract Google My Business Leads by Service and Location\n**Description:** \nExtract Google business listings by service type and geographic location using Bright Data's Google Maps dataset. Automatically processes cities, removes duplicates, and saves results to Google Sheets.",
+        "height": 276,
+        "width": 300
+      },
+      "id": "cf569f40-4507-4077-8bf6-abf3b6d1e409",
+      "name": "Workflow Description",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -4304,
+        -272
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get values from input expressions\nconst serviceName = $('Form Submission Trigger').first().json.Service;\nconst state = $('Form Submission Trigger').first().json.State;\nconst country = $('Form Submission Trigger').first().json.Country;\nconst citiesString = $('Generate City List').first().json.output;\n\n// Validate required fields\nif (!serviceName || !state || !country || !citiesString) {\n  throw new Error(\"Missing required input data (Service, State, Country, or City list)\");\n}\n\n// Split cities string by newline and clean extra spaces\nconst cities = citiesString.split('\\n').map(city => city.trim()).filter(city => city.length > 0);\n\n// Generate output items dynamically for each city\nconst output = cities.map(city => ({\n  json: {\n    name: serviceName,\n    country: country,\n    state: state,\n    city: city,\n    category: serviceName\n  }\n}));\n\nreturn output;\n"
+      },
+      "id": "02bb52e3-4ac9-4f0e-9ca3-a88d89afb420",
+      "name": "Separate Data by City",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -3184,
+        32
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Provide a list of cities or sub areas located inside the Location of {{ $json.State }}, within the country {{ $json.Country }}. This data will be used to search on Google maps for businesses in that region.\nThe output should be a plain text list, without bullets, numbering, or any special characters.\nDo not include any introduction, explanation, or concluding text—only the list of city names.",
+        "options": {}
+      },
+      "id": "7b00506d-1928-4fd0-a069-71264acb0db1",
+      "name": "Generate City List",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -3952,
+        32
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Determine the appropriate category based on the following input: \"{{ $('Form Submission Trigger').item.json.Service }}\"\n\nThe output must contain only the category name that best describes the given service.\nExamples of categories include but are not limited to: Electronics, Healthcare, Education, Food & Beverage, Automotive, Finance, Real Estate, etc.",
+        "options": {}
+      },
+      "id": "dde87eeb-5a50-46fb-a2b4-fcbf3f5b6cc4",
+      "name": "Categorize Service Type",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -3584,
+        32
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "content": "Separate each search by city name for comprehensive coverage",
+        "height": 80,
+        "width": 272
+      },
+      "id": "03cc6b89-1324-4374-bf87-dc3e4913a76f",
+      "name": "City Processing Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3264,
+        -64
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "028ad671-63a8-4914-b3c1-6f5ce9adb4ee",
+      "name": "Process Cities in Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [
+        -2912,
+        32
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit",
+          "cachedResultName": "Business Leads Database"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0",
+          "cachedResultName": "Business Leads"
+        },
+        "options": {}
+      },
+      "id": "d7cabe85-072a-4877-b4a9-398db3858aa7",
+      "name": "Get Existing Business Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -2608,
+        -256
+      ],
+      "typeVersion": 4.6
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst seen = new Map();\nconst duplicates = [];\n\nfor (const item of items) {\n  const businessName = String(item.json['Business Name'] || '').trim().toLowerCase();\n  const phoneNumber = String(item.json['Phone Number'] || '').trim();\n  const address = item.json['Address'];\n  const mapsUrl = item.json['Google Maps URL'];\n\n  if (!businessName) continue;\n\n  const key = businessName;\n\n  if (seen.has(key)) {\n    const previous = seen.get(key);\n\n    if (!phoneNumber || phoneNumber === previous.phoneNumber) {\n      duplicates.push({\n        json: {\n          Address: address,\n          'Google Maps URL': mapsUrl\n        }\n      });\n    }\n\n  } else {\n    seen.set(key, { phoneNumber });\n  }\n}\n\nreturn duplicates;\n"
+      },
+      "id": "e282ab66-a9d3-407a-960f-063bba8a4c4c",
+      "name": "Check for Duplicate Entries",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -2432,
+        -256
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit",
+          "cachedResultName": "Business Leads Database"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0",
+          "cachedResultName": "Business Leads"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Address",
+              "lookupValue": "={{ $json.Address }}"
+            },
+            {
+              "lookupColumn": "Google Maps URL",
+              "lookupValue": "={{ $json['Google Maps URL'] }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "id": "931db617-f671-4317-87c2-72e534ff5d79",
+      "name": "Find Duplicate Row Number",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -1952,
+        -240
+      ],
+      "executeOnce": true,
+      "typeVersion": 4.6
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "ae36c72f-a772-499f-a1d7-92cf8a8d640c",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              },
+              "leftValue": "={{ $json.message }}",
+              "rightValue": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9f1dd255-071d-411e-8dd3-2c9991c09df7",
+      "name": "Check Scraping Status",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -2400,
+        304
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit",
+          "cachedResultName": "Business Leads Database"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gid=0",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/YOUR_GOOGLE_SHEET_ID/edit#gid=0",
+          "cachedResultName": "Business Leads"
+        },
+        "startIndex": "={{ $json.row_number }}"
+      },
+      "id": "1754bf30-27be-4ee4-9dae-9a580035d5c9",
+      "name": "Delete Duplicate Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -1664,
+        -240
+      ],
+      "executeOnce": true,
+      "typeVersion": 4.6
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "615e3e40-6a4a-4508-8bfe-74d13c1b9baf",
+      "name": "Process Duplicates in Batches",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [
+        -2208,
+        -256
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1UIJtCT72XqEkhwoS6QL8tfEcUPUb3fM-C-dGjRi5r0k",
+          "mode": "list",
+          "cachedResultName": "Copy of Business Leads Database",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1UIJtCT72XqEkhwoS6QL8tfEcUPUb3fM-C-dGjRi5r0k/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LnXdO5TPw4dStGo319V_TilZ-3gGEMEtq50LTUqxIOw/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Business Name": "={{ $json.name }}",
+            "Category": "={{ $json.category }}",
+            "Address": "={{ $json.address }}",
+            "Phone Number": "={{ $json.phone_number }}",
+            "Website URL": "={{ $json.open_website }}",
+            "Google Rating": "={{ $json.rating }}",
+            "Operating Hours": "={{ $json.open_hours }}",
+            "Google Maps URL": "={{ $json.url }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Business Name",
+              "displayName": "Business Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Website URL",
+              "displayName": "Website URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Address",
+              "displayName": "Address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Operating Hours",
+              "displayName": "Operating Hours",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Google Rating",
+              "displayName": "Google Rating",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Google Maps URL",
+              "displayName": "Google Maps URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "922a71f1-d1d7-4531-bfb1-7901f0fbb1b9",
+      "name": "Save Business Data to Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "position": [
+        -1216,
+        320
+      ],
+      "typeVersion": 4.6,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "173rvn1sA1sH3cJz",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.brightdata.com/datasets/v3/snapshot/{{ $json.snapshot_id }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "format",
+              "value": "json"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 8ff3097f0f7fdadf592bc0a464743a71d23a521f7ae34ddc9487ed743ca9bcb2"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8c310eb6-e3ae-48a6-b122-646792433535",
+      "name": "Fetch Scraped Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -1440,
+        128
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "url": "=https://api.brightdata.com/datasets/v3/progress/{{ $json.snapshot_id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 8ff3097f0f7fdadf592bc0a464743a71d23a521f7ae34ddc9487ed743ca9bcb2"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ff686ab4-9aaf-42ab-97f5-16ff8f6e77ad",
+      "name": "Check Data Collection Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -2176,
+        144
+      ],
+      "typeVersion": 4.2,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "amount": 25
+      },
+      "id": "3d240c2f-9596-48c5-8765-0b3437ba9a72",
+      "name": "Wait for Rate Limiting",
+      "type": "n8n-nodes-base.wait",
+      "position": [
+        -1936,
+        144
+      ],
+      "webhookId": "10b45556-5e91-4387-abd0-f9078b220286",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "version": 2,
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "or",
+          "conditions": [
+            {
+              "id": "35ed620d-b5d5-4e97-bcc5-52b283d85616",
+              "operator": {
+                "name": "filter.operator.equals",
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "ready"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e20f8433-e4ab-4e90-bbeb-367d4268c9eb",
+      "name": "Check if Data Ready",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -1664,
+        144
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "content": "## Data Collection Monitoring\n### Monitors Bright Data scraping progress and fetches results when ready\n### Polls the API until scraping completes, then retrieves the final dataset",
+        "height": 480,
+        "width": 1500,
+        "color": 6
+      },
+      "id": "01160998-2f57-4dcf-961c-eafc51dc026a",
+      "name": "Data Collection Notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2432,
+        16
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Duplicate Removal Process\n### Identifies and removes duplicate business entries\n### Compares business names and phone numbers to eliminate redundant data",
+        "height": 380,
+        "width": 1500,
+        "color": 6
+      },
+      "id": "f34ba48d-ebc4-47f1-b96d-d3b8afc064c4",
+      "name": "Duplicate Removal Notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2816,
+        -448
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5",
+          "mode": "list",
+          "cachedResultName": "gpt-5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -4096,
+        240
+      ],
+      "id": "4267f870-9cc7-4e48-be35-2758d20faf7b",
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5",
+          "mode": "list",
+          "cachedResultName": "gpt-5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -3584,
+        256
+      ],
+      "id": "7f0f56db-41c8-4527-bc22-a4641d58b0e9",
+      "name": "OpenAI Chat Model1"
+    },
+    {
+      "parameters": {
+        "resource": "webScrapper",
+        "dataset_id": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gd_lh0tnzlo2bie4uhdhr",
+          "cachedResultName": "Google Maps businesses"
+        },
+        "urls": "=[\n  {\n    \"url\": \"https://www.google.com/maps/search/{{ $json.name }}+in+{{ $json.city }} {{ $json.state }}\",\n    \"category\": \"{{ $json.category }}\",\n    \"country_name\": \"{{ $json.country }}\",\n    \"sample\": false\n  }\n]\n ",
+        "requestOptions": {
+          "proxy": ""
+        }
+      },
+      "id": "56696053-a99f-435b-a90f-fe0a6cc7e258",
+      "name": "Scrape Business Data from Google Maps2",
+      "type": "@brightdata/n8n-nodes-brightdata.brightData",
+      "position": [
+        -2656,
+        304
+      ],
+      "typeVersion": 1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "brightdataApi": {
+          "id": "CBzxUMAlODu8LFgC",
+          "name": "BrightData account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Generate City List": [
+      {
+        "json": {
+          "output": "Albany\nAmsterdam\nAuburn\nBatavia\nBeacon\nBinghamton\nBuffalo\nCanandaigua\nCohoes\nCorning\nCortland\nDunkirk\nElmira\nFulton\nGeneva\nGlen Cove\nGlens Falls\nGloversville\nHornell\nHudson\nIthaca\nJamestown\nJohnstown\nKingston\nLackawanna\nLittle Falls\nLockport\nLong Beach\nMechanicville\nMiddletown\nMount Vernon\nNew Rochelle\nNew York\nNewburgh\nNiagara Falls\nNorth Tonawanda\nNorwich\nOgdensburg\nOlean\nOneida\nOneonta\nOswego\nPeekskill\nPlattsburgh\nPort Jervis\nPoughkeepsie\nRensselaer\nRochester\nRome\nRye\nSalamanca\nSaratoga Springs\nSchenectady\nSherrill\nSyracuse\nTonawanda\nTroy\nUtica\nWatertown\nWatervliet\nWhite Plains\nYonkers"
+        }
+      }
+    ],
+    "Categorize Service Type": [
+      {
+        "json": {
+          "output": "Healthcare"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Fetch Scraped Data": {
+      "main": [
+        [
+          {
+            "node": "Save Business Data to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate City List": {
+      "main": [
+        [
+          {
+            "node": "Categorize Service Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Data Ready": {
+      "main": [
+        [
+          {
+            "node": "Fetch Scraped Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Data Collection Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Duplicate Row": {
+      "main": [
+        [
+          {
+            "node": "Process Duplicates in Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Scraping Status": {
+      "main": [
+        [
+          {
+            "node": "Check Data Collection Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save Business Data to Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Separate Data by City": {
+      "main": [
+        [
+          {
+            "node": "Process Cities in Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Rate Limiting": {
+      "main": [
+        [
+          {
+            "node": "Check if Data Ready",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Categorize Service Type": {
+      "main": [
+        [
+          {
+            "node": "Separate Data by City",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form Submission Trigger": {
+      "main": [
+        [
+          {
+            "node": "Generate City List",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Duplicate Row Number": {
+      "main": [
+        [
+          {
+            "node": "Delete Duplicate Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Cities in Batches": {
+      "main": [
+        [
+          {
+            "node": "Get Existing Business Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Scrape Business Data from Google Maps2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Existing Business Data": {
+      "main": [
+        [
+          {
+            "node": "Check for Duplicate Entries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check for Duplicate Entries": {
+      "main": [
+        [
+          {
+            "node": "Process Duplicates in Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Business Data to Sheet": {
+      "main": [
+        [
+          {
+            "node": "Process Cities in Batches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Data Collection Status": {
+      "main": [
+        [
+          {
+            "node": "Wait for Rate Limiting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Duplicates in Batches": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Find Duplicate Row Number",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Generate City List",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Categorize Service Type",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape Business Data from Google Maps2": {
+      "main": [
+        [
+          {
+            "node": "Check Scraping Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "be619291-1a12-40ba-9c98-48bc5d05fcc8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4b3e4819e187f0e6bb46037a1f4d87a4a987cc4521fb3e706ce45fca5ff7a5d1"
+  },
+  "id": "sPq1d3WPjy1EgaKe",
+  "tags": []
+}

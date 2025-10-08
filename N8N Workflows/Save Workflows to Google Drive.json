@@ -9,12 +9,12 @@
           "fileName": "={{ $json.name + \".json\" }} "
         }
       },
-      "id": "c2e6a87e-7446-4975-a7de-26824851a1ba",
+      "id": "b9ceabdc-b876-424f-ab26-37111d3dd00e",
       "name": "Convert to File",
       "type": "n8n-nodes-base.convertToFile",
       "position": [
-        464,
-        2096
+        736,
+        2064
       ],
       "typeVersion": 1.1
     },
@@ -28,12 +28,12 @@
           ]
         }
       },
-      "id": "6e6a4fc5-b4bd-41aa-8af3-7ece3982dfed",
+      "id": "ed52897f-f1cf-4781-b76c-198504e05f66",
       "name": "Schedule Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "position": [
-        -432,
-        2112
+        -160,
+        2080
       ],
       "typeVersion": 1.2
     },
@@ -64,12 +64,12 @@
           "ignoreCase": true
         }
       },
-      "id": "6e00f3a5-6921-4298-901b-b652be3435a6",
+      "id": "c0f8fe38-dbb9-4381-9f60-9deed0c44856",
       "name": "Filter",
       "type": "n8n-nodes-base.filter",
       "position": [
-        464,
-        1920
+        736,
+        1888
       ],
       "typeVersion": 2.2
     },
@@ -86,20 +86,14 @@
           "deletePermanently": true
         }
       },
-      "id": "a5c69616-69e8-472a-9a67-9945bc13120e",
+      "id": "03be3a71-66ac-4914-995e-5c1a48c6d038",
       "name": "delete folder",
       "type": "n8n-nodes-base.googleDrive",
       "position": [
-        688,
-        1920
+        960,
+        1888
       ],
-      "typeVersion": 3,
-      "credentials": {
-        "googleDriveOAuth2Api": {
-          "id": "cbvc55JQlDL4GW9t",
-          "name": "Google Drive account"
-        }
-      }
+      "typeVersion": 3
     },
     {
       "parameters": {
@@ -115,29 +109,23 @@
         },
         "options": {}
       },
-      "id": "9a567bba-e9df-4d96-a9ed-f33d620d00c7",
+      "id": "19349d21-4be0-4c27-83d5-80e543aa4095",
       "name": "Get folders",
       "type": "n8n-nodes-base.googleDrive",
       "position": [
-        16,
-        1920
+        288,
+        1888
       ],
-      "typeVersion": 3,
-      "credentials": {
-        "googleDriveOAuth2Api": {
-          "id": "cbvc55JQlDL4GW9t",
-          "name": "Google Drive account"
-        }
-      }
+      "typeVersion": 3
     },
     {
       "parameters": {},
-      "id": "aded7629-fcfd-46a6-8146-3e234c351f58",
+      "id": "f64bf7a1-6745-4254-9e9e-d9ea386d3374",
       "name": "Manual trigger",
       "type": "n8n-nodes-base.manualTrigger",
       "position": [
-        -432,
-        1920
+        -160,
+        1888
       ],
       "typeVersion": 1
     },
@@ -161,31 +149,25 @@
         },
         "options": {}
       },
-      "id": "fdc21788-5708-40d4-985a-978f4d409543",
+      "id": "a8b5ff9d-c828-4508-bed2-9550e7bb8999",
       "name": "Create new folder",
       "type": "n8n-nodes-base.googleDrive",
       "position": [
-        -208,
-        2016
+        64,
+        1984
       ],
-      "typeVersion": 3,
-      "credentials": {
-        "googleDriveOAuth2Api": {
-          "id": "cbvc55JQlDL4GW9t",
-          "name": "Google Drive account"
-        }
-      }
+      "typeVersion": 3
     },
     {
       "parameters": {
         "options": {}
       },
-      "id": "7f688092-2c0a-4033-8b57-bd1f68a75aab",
+      "id": "73655520-8420-4009-94c5-3de05f515467",
       "name": "Loop ",
       "type": "n8n-nodes-base.splitInBatches",
       "position": [
-        240,
-        2112
+        512,
+        2080
       ],
       "typeVersion": 3
     },
@@ -206,29 +188,23 @@
         },
         "options": {}
       },
-      "id": "53d84fac-3ec9-4864-87c3-ed27a82e49b3",
+      "id": "69364c08-716f-4732-b8a1-08f23ffcc02a",
       "name": "Upload workflow",
       "type": "n8n-nodes-base.googleDrive",
       "position": [
-        688,
-        2112
+        960,
+        2080
       ],
-      "typeVersion": 3,
-      "credentials": {
-        "googleDriveOAuth2Api": {
-          "id": "cbvc55JQlDL4GW9t",
-          "name": "Google Drive account"
-        }
-      }
+      "typeVersion": 3
     },
     {
       "parameters": {},
-      "id": "0b3f2379-dee8-44e1-9348-e7c32552a293",
+      "id": "d5b6c143-d384-4208-8a4e-955114a2c835",
       "name": "Limit",
       "type": "n8n-nodes-base.limit",
       "position": [
-        240,
-        1920
+        512,
+        1888
       ],
       "typeVersion": 1
     },
@@ -237,22 +213,16 @@
         "filters": {},
         "requestOptions": {}
       },
-      "id": "72481535-647d-49e2-9f26-7ebc5bb195d8",
+      "id": "abf006c4-c6f0-4d04-a407-05077e85a4cf",
       "name": "Get n8n workflow",
       "type": "n8n-nodes-base.n8n",
       "position": [
-        16,
-        2112
+        288,
+        2080
       ],
       "retryOnFail": true,
       "typeVersion": 1,
-      "alwaysOutputData": true,
-      "credentials": {
-        "n8nApi": {
-          "id": "xKjojsEZuwBzpmdI",
-          "name": "n8n account"
-        }
-      }
+      "alwaysOutputData": true
     },
     {
       "parameters": {
@@ -261,12 +231,12 @@
         "width": 1320,
         "color": 4
       },
-      "id": "13decef5-40bb-4ea8-8748-718fb9c34df0",
+      "id": "d9e8362e-26fc-45a6-ba44-fa991088e27e",
       "name": "Sticky Note",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -272,
-        32
+        0,
+        0
       ],
       "typeVersion": 1
     }
@@ -389,11 +359,10 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "3defbcd3-8f80-47b3-bbb0-69f63a50918f",
+  "versionId": "fcaa1629-b5ac-493c-8b16-0230b03f8f1b",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "81806a7c98bb8d237bfcc1a0a10e3354bbc01ea162f99fd0b145ef31b6331051"
+    "instanceId": "4b3e4819e187f0e6bb46037a1f4d87a4a987cc4521fb3e706ce45fca5ff7a5d1"
   },
-  "id": "mwr5BzvrJfq254kR",
+  "id": "so4p9Q8nU7SYWQVo",
   "tags": []
 }
